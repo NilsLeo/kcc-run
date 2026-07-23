@@ -1,0 +1,10 @@
+# local test inputs (copyrighted samples) — never commit
+*.cbz
+*.cbr
+*.pdf
+*.epub
+*.mobi
+
+# conversion output dirs
+out/
+out-*/
