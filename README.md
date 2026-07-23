@@ -15,12 +15,13 @@ docker run --rm -v "$PWD:/work" ghcr.io/nilsleo/kcc-run  <owner/repo[:ref]>  <kc
 docker pull ghcr.io/nilsleo/kcc-run:latest
 
 # upstream master (default branch if you omit :ref)
-docker run --rm -v "$PWD:/work" ghcr.io/nilsleo/kcc-run \
-  ciromattia/kcc:master           -p KV -f EPUB -o out mybook.cbz
+docker run --rm -v "$PWD:/work" ghcr.io/nilsleo/kcc-run ciromattia/kcc:master -p KV -f EPUB -o out mybook.cbz
 
 # a fork's feature branch — same image, no rebuild
-docker run --rm -v "$PWD:/work" ghcr.io/nilsleo/kcc-run \
-  NilsLeo/kcc:up/image-resilience -p KV -f EPUB -o out mybook.cbz
+docker run --rm -v "$PWD:/work" ghcr.io/nilsleo/kcc-run NilsLeo/kcc:up/image-resilience -p KV -f EPUB -o out mybook.cbz
+
+# MOBI works too (kindlegen is bundled)
+docker run --rm -v "$PWD:/work" ghcr.io/nilsleo/kcc-run ciromattia/kcc:master -p KV -f MOBI -o out mybook.cbz
 ```
 
 A shell shortcut so it reads exactly like `repo:ref  cli args`:
@@ -28,8 +29,8 @@ A shell shortcut so it reads exactly like `repo:ref  cli args`:
 ```bash
 kcc() { docker run --rm -v "$PWD:/work" -w /work ghcr.io/nilsleo/kcc-run "$@"; }
 
-kcc ciromattia/kcc:master           -p KV -f EPUB -o out mybook.cbz
-kcc NilsLeo/kcc                     -p KV -f EPUB -o out mybook.pdf   # no :ref → master
+kcc ciromattia/kcc:master -p KV -f EPUB -o out mybook.cbz
+kcc NilsLeo/kcc -p KV -f EPUB -o out mybook.pdf   # no :ref → master
 ```
 
 ## How it works
@@ -47,9 +48,7 @@ kcc NilsLeo/kcc                     -p KV -f EPUB -o out mybook.pdf   # no :ref 
 
 - `-f EPUB` avoids needing kindlegen. Use `-p KV` (Kindle Voyage) or any valid
   KCC profile.
-- Output files land on your host owned by **root** (Docker runs as root). Remove
-  with `sudo rm -rf out`, or:
-  `docker run --rm -v "$PWD:/work" --entrypoint sh ghcr.io/nilsleo/kcc-run -c 'rm -rf /work/out'`.
+- Output files land on your host owned by **root** (Docker runs as root). Remove with `sudo rm -rf out`, or: `docker run --rm -v "$PWD:/work" --entrypoint sh ghcr.io/nilsleo/kcc-run -c 'rm -rf /work/out'`.
 - The image is rebuilt on every push and weekly (Mon 06:00 UTC) so the baked
   deps track upstream, via `.github/workflows/build.yml` → `ghcr.io/nilsleo/kcc-run`.
 
