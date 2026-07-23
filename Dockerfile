@@ -4,8 +4,18 @@
 #   docker run --rm -v "$PWD:/work" ghcr.io/nilsleo/kcc-run <owner/repo[:ref]> <kcc-c2e.py args...>
 FROM python:3.11-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends git p7zip-full \
+# kindlegen is a 32-bit i386 binary → needs i386 runtime libs.
+RUN dpkg --add-architecture i386 \
+ && apt-get update && apt-get install -y --no-install-recommends \
+      git p7zip-full curl ca-certificates \
+      libc6-i386 lib32stdc++6 \
  && rm -rf /var/lib/apt/lists/*
+
+# kindlegen (needed for -f MOBI/AZW3). Placed OUTSIDE /opt/kcc — entry.sh wipes
+# /opt/kcc on every run — and put on PATH so KCC finds it.
+RUN curl -fsSL https://archive.org/download/kindlegen/kindlegen -o /opt/kindlegen \
+ && chmod +x /opt/kindlegen \
+ && ln -s /opt/kindlegen /usr/local/bin/kindlegen
 
 # Bake the (branch-independent) Python deps once, using upstream master's list as
 # the baseline — the runtime clone reuses them.
