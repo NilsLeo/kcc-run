@@ -36,6 +36,25 @@ kcc ciromattia/kcc:master -p KV -f EPUB -o out mybook.cbz
 kcc NilsLeo/kcc -p KV -f EPUB -o out mybook.pdf   # no :ref → master
 ```
 
+## Fetch input by job UUID (`--uuid`)
+
+Instead of a local file, pass `--uuid <job-uuid>` to download the input straight
+from the storage bucket (the object whose key contains that uuid) and convert it:
+
+```bash
+docker run --platform linux/amd64 --env-file .env.prod --rm -v "$PWD:/work" \
+  ghcr.io/nilsleo/kcc-run NilsLeo/kcc:master --uuid <job-uuid> -p KV -f EPUB -o out
+```
+
+Provide the S3 credentials via `--env-file` (or `-e`):
+
+- `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`
+- `KCC_BUCKET` overrides the default bucket (`S3_ERRORS_BUCKET`, i.e.
+  `mangaconverter-errors`; falls back to `S3_BUCKET`).
+
+The file downloads into your `/work` mount and is appended as the KCC input, so
+you don't name a file yourself — every other arg is passed through unchanged.
+
 ## How it works
 
 - The image bakes KCC's Python deps (`PyMuPDF`, `numpy`,

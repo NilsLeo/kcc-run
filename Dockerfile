@@ -5,9 +5,13 @@
 FROM python:3.11-slim
 
 # kindlegen is a 32-bit i386 binary → needs i386 runtime libs.
+# unrar (non-free) is what KCC shells out to for .cbr/RAR on Linux (it only tries
+# `unar` on macOS); enable the non-free component to install it. p7zip can't
+# extract many RARs. Keep `unar` too as a free fallback.
 RUN dpkg --add-architecture i386 \
+ && sed -i 's/^Components: main$/Components: main contrib non-free non-free-firmware/' /etc/apt/sources.list.d/debian.sources \
  && apt-get update && apt-get install -y --no-install-recommends \
-      git p7zip-full curl ca-certificates \
+      git p7zip-full unrar unar curl ca-certificates \
       libc6-i386 lib32stdc++6 \
  && rm -rf /var/lib/apt/lists/*
 
@@ -20,11 +24,12 @@ RUN curl -fsSL https://archive.org/download/kindlegen/kindlegen -o /opt/kindlege
 # Bake the (branch-independent) Python deps once, using upstream master's list as
 # the baseline — the runtime clone reuses them.
 RUN git clone --depth=1 https://github.com/ciromattia/kcc.git /tmp/kcc-base \
- && pip install --no-cache-dir numpy PyMuPDF \
+ && pip install --no-cache-dir numpy PyMuPDF boto3 \
  && pip install --no-cache-dir -r /tmp/kcc-base/requirements-docker.txt \
  && rm -rf /tmp/kcc-base
 
 COPY entry.sh /usr/local/bin/entry.sh
+COPY fetch.py /usr/local/bin/fetch.py
 RUN chmod +x /usr/local/bin/entry.sh
 
 WORKDIR /work
