@@ -36,24 +36,51 @@ kcc ciromattia/kcc:master -p KV -f EPUB -o out mybook.cbz
 kcc NilsLeo/kcc -p KV -f EPUB -o out mybook.pdf   # no :ref → master
 ```
 
-## Fetch input by job UUID (`--uuid`)
+## Fork development workflow
 
-Instead of a local file, pass `--uuid <job-uuid>` to download the input straight
-from the storage bucket (the object whose key contains that uuid) and convert it:
+In the local `kcc-fork` checkout, the `upstream` remote points to
+`ciromattia/kcc`, and the local `upstream-base` branch tracks
+`upstream/master`. Keep `upstream-base` synchronized with the actual upstream
+branch and use it—not the fork's customized `master`—as the base for feature
+branches intended for upstream pull requests:
 
 ```bash
-docker run --platform linux/amd64 --env-file .env.prod --rm -v "$PWD:/work" \
-  ghcr.io/nilsleo/kcc-run NilsLeo/kcc:master --uuid <job-uuid> -p KV -f EPUB -o out
+git fetch upstream
+git switch upstream-base
+git pull --ff-only
+git switch -c up/my-feature
 ```
 
-Provide the S3 credentials via `--env-file` (or `-e`):
+After committing the feature, push it to the fork and open the pull request
+against `ciromattia/kcc:master`:
 
-- `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`
-- `KCC_BUCKET` overrides the default bucket (`S3_ERRORS_BUCKET`, i.e.
-  `mangaconverter-errors`; falls back to `S3_BUCKET`).
+```bash
+git push -u origin up/my-feature
+gh pr create --repo ciromattia/kcc --base master --head NilsLeo:up/my-feature
+```
 
-The file downloads into your `/work` mount and is appended as the KCC input, so
-you don't name a file yourself — every other arg is passed through unchanged.
+### Minimal PR description
+
+````markdown
+Fixes #<issue>
+
+## Problem
+<What fails and the relevant error.>
+
+## Fix
+<What changed and why.>
+
+## Reproduce / test
+Fixture: <Google Drive link>
+
+```bash
+# Upstream: <expected failure>
+kcc ciromattia/kcc:master <args> book.cbz
+
+# This branch: <expected success>
+kcc NilsLeo/kcc:<branch> <args> book.cbz
+```
+````
 
 ## How it works
 

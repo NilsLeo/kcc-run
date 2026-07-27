@@ -24,12 +24,11 @@ RUN curl -fsSL https://archive.org/download/kindlegen/kindlegen -o /opt/kindlege
 # Bake the (branch-independent) Python deps once, using upstream master's list as
 # the baseline — the runtime clone reuses them.
 RUN git clone --depth=1 https://github.com/ciromattia/kcc.git /tmp/kcc-base \
- && pip install --no-cache-dir numpy PyMuPDF boto3 \
+ && pip install --no-cache-dir numpy PyMuPDF \
  && pip install --no-cache-dir -r /tmp/kcc-base/requirements-docker.txt \
  && rm -rf /tmp/kcc-base
 
 COPY entry.sh /usr/local/bin/entry.sh
-COPY fetch.py /usr/local/bin/fetch.py
 RUN chmod +x /usr/local/bin/entry.sh
 
 WORKDIR /work
