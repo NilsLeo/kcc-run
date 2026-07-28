@@ -11,7 +11,7 @@ FROM python:3.11-slim
 RUN dpkg --add-architecture i386 \
  && sed -i 's/^Components: main$/Components: main contrib non-free non-free-firmware/' /etc/apt/sources.list.d/debian.sources \
  && apt-get update && apt-get install -y --no-install-recommends \
-      git p7zip-full unrar unar curl ca-certificates \
+      git p7zip-full unrar unar libarchive-tools curl ca-certificates \
       libc6-i386 lib32stdc++6 \
  && rm -rf /var/lib/apt/lists/*
 
