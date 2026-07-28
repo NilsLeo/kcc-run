@@ -72,6 +72,8 @@ Fixes #<issue>
 
 ## Reproduce / test
 Fixture: <Google Drive link>
+Filename: <fixture filename as uploaded/shared>
+Filepath: <local path under /work that the commands below reference>
 
 ```bash
 # Upstream: <expected failure>
