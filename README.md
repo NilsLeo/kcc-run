@@ -41,7 +41,11 @@ kcc NilsLeo/kcc -p KV -f EPUB -o out mybook.pdf   # no :ref → master
 Convention: problem files land in `../files/triage/` (usually named
 `Title_<jobid>.<ext>`); disposition dirs `DONE` / `CANT DO` / `WONT Do` sit next
 to it; run artifacts (logs, extracted output, notes) go to
-`../kcc-feature-results/triage-runs/`. "Apply the triage workflow to the triage
+`../kcc-feature-results/triage-runs/`. Two fixture subfolders live under
+`DONE`: `HappyPath/` (known-good corpus for regression sweeps) and
+`HandledEdgeCases/` (files that used to fail and are now handled — e.g. the
+LookBack nested-archive rar fixed by auto-unwrap; rerun these after
+KCC/worker changes to catch regressions). "Apply the triage workflow to the triage
 dir" means, per file:
 
 1. **Inspect the archive before running anything.** Magic bytes (`file`,
