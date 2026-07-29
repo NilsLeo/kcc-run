@@ -36,6 +36,40 @@ kcc ciromattia/kcc:master -p KV -f EPUB -o out mybook.cbz
 kcc NilsLeo/kcc -p KV -f EPUB -o out mybook.pdf   # no :ref → master
 ```
 
+## Triage workflow (problem archives from prod)
+
+Convention: problem files land in `../files/triage/` (usually named
+`Title_<jobid>.<ext>`); disposition dirs `DONE` / `CANT DO` / `WONT Do` sit next
+to it; run artifacts (logs, extracted output, notes) go to
+`../kcc-feature-results/triage-runs/`. "Apply the triage workflow to the triage
+dir" means, per file:
+
+1. **Inspect the archive before running anything.** Magic bytes (`file`,
+   `xxd | head`), listing (`bsdtar -tvf`, `zipinfo`). This alone caught: zero-byte
+   image placeholders (Kousai), HTML error documents instead of images
+   (MangaPlus/CRUELTY), truncated RAR central directory (HxH). Note counts:
+   how many entries are real images vs junk.
+2. **Reproduce with prod-like args** and capture full stderr:
+   `kcc NilsLeo/kcc -p <profile> -f EPUB -o out <file>` — map the job's device
+   to the KCC profile the worker would use (e.g. KoLC; see the "KCC Command"
+   column in the Grafana Jobs table for the exact flags of the failing job).
+   Work on a **copy**; run in a scratch dir.
+3. **Classify the failure.** Match stderr against the worker's `ERR:*` mapping
+   (`apps/worker/src/conversion/kcc-process.service.ts` in mangaconverter-saas).
+   If it lands in `ERR:unknown`, that's a finding: propose a new stderr→class
+   mapping (NIL-636 pattern) so users get a real message.
+4. **Damaged archives: A/B the salvage path.** The fork's master carries the
+   bsdtar salvage patch (NIL-624). Run upstream vs fork with identical args:
+   `kcc ciromattia/kcc:master …` vs `kcc NilsLeo/kcc …`. Fork extracting
+   most pages while upstream dies = salvageable; report page counts.
+5. **Fix if warranted** via the fork-PR flow below; rebuild/redeploy the worker
+   image so prod picks it up (worker Dockerfile clones the fork).
+6. **Record and file.** Per-file verdict into
+   `../kcc-feature-results/triage-runs/`: root cause, ERR class (current vs
+   proposed), salvage result, user-facing message quality. Move the file to
+   `DONE` / `CANT DO` / `WONT Do`, and track code changes as Linear tickets
+   (team NilsWork, project MangaConverter).
+
 ## Fork development workflow
 
 In the local `kcc-fork` checkout, the `upstream` remote points to
