@@ -43,9 +43,11 @@ Convention: problem files land in `../files/triage/` (usually named
 to it; run artifacts (logs, extracted output, notes) go to
 `../kcc-feature-results/triage-runs/`. Two fixture subfolders live under
 `DONE`: `HappyPath/` (known-good corpus for regression sweeps) and
-`HandledEdgeCases/` (files that used to fail and are now handled — e.g. the
-LookBack nested-archive rar fixed by auto-unwrap; rerun these after
-KCC/worker changes to catch regressions). "Apply the triage workflow to the triage
+`HandledEdgeCases/` (files that used to fail and are now handled — organized
+into one subfolder per error class, e.g. `Nested Archive/`, `Extension
+spoofing/`, `Memory Hungry/`, `partially damaged archive/`; file each fixture
+into the subfolder describing its error, and rerun these after KCC/worker
+changes to catch regressions). "Apply the triage workflow to the triage
 dir" means, per file:
 
 1. **Inspect the archive before running anything.** Magic bytes (`file`,
