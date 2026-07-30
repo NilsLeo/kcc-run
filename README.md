@@ -159,6 +159,31 @@ the x86 image under emulation:
 - **EPUB** works out of the box under emulation.
 - **MOBI** needs 32-bit x86 emulation, which Rosetta does *not* provide. If MOBI fails, turn **off** Docker Desktop → Settings → General → "Use Rosetta for x86_64/amd64 emulation" (falls back to QEMU, which runs the 32-bit `kindlegen`). It's slower but works.
 
+### colima: mind which directories the VM shares
+
+The container only sees paths the VM shares with the host. colima shares `$HOME`
+by default but **not** `/private/tmp` (nor `/tmp`, which symlinks to it). Run
+from a scratch dir under `$HOME`.
+
+This fails in a way that reads like a corrupt archive rather than a missing
+mount: `-v "$PWD:/work"` from an unshared path mounts an **empty** `/work`, so
+KCC reports
+
+```
+Failed to open source file/directory
+```
+
+which the worker maps to `ERR:corrupt_archive` — pointing triage at the file
+when the file was never there. If a reproduction fails on the first run, list
+the mount before believing the error:
+
+```bash
+docker run --rm -v "$PWD:/work" -w /work --entrypoint ls ghcr.io/nilsleo/kcc-run -la /work
+```
+
+An empty listing means the mount, not the archive. (`colima start` after a host
+reboot can also leave a stale socket forward — `colima restart` fixes it.)
+
 ## Build locally
 
 ```bash
